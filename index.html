@@ -1441,5 +1441,32 @@
 
         <!-- Load application script after external libraries to ensure symbols are defined -->
         <script src="script.js"></script>
+
+        <!-- Set default product view to list on small screens. This script runs
+             after the application script has loaded to ensure the
+             setProductViewMode() function is available. On screens narrower
+             than 640px (mobile), the list view provides better readability and
+             reduces scrolling by fitting more items per screen【716247267516178†L68-L90】. -->
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            if (window.innerWidth < 640) {
+              try {
+                // Switch to list view for improved readability on mobile.
+                setProductViewMode('list');
+                // Update button styles to reflect active view if the function exists.
+                var listBtn = document.getElementById('viewListButton');
+                var gridBtn = document.getElementById('viewGridButton');
+                var tableBtn = document.getElementById('viewTableButton');
+                if (listBtn && gridBtn && tableBtn) {
+                  listBtn.classList.add('bg-green-500', 'text-white');
+                  gridBtn.classList.remove('bg-green-500', 'text-white');
+                  tableBtn.classList.remove('bg-green-500', 'text-white');
+                }
+              } catch (e) {
+                console.warn('Could not set default view mode:', e);
+              }
+            }
+          });
+        </script>
     </body>
     </html>
