@@ -17,6 +17,9 @@ body {
              */
             body {
                 font-size: 16px;
+                /* Increase line height on mobile for better readability. A 1.5 line height
+                 * helps users scan content without crowding【887358294326863†L199-L208】. */
+                line-height: 1.5;
             }
             
             h1 {
@@ -47,6 +50,33 @@ body {
                 max-width: 320px !important;
                 bottom: 0.5rem !important;
                 right: 0.5rem !important;
+            }
+
+            /* Fix the navigation to the bottom of the screen on small devices. This places
+             * the tab bar within the thumb's natural reach, improving ergonomics【887358294326863†L215-L223】.
+             * We also override any top margin or positioning to avoid conflicting rules. */
+            #navWrapper {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                margin-top: 0 !important;
+                top: auto !important;
+                z-index: 1000;
+                background-color: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            }
+
+            /* Enable horizontal scrolling on the tab bar when fixed to the bottom */
+            #navContainer .flex {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            /* Provide bottom padding so content isn't obscured by the fixed nav bar */
+            #contentContainer {
+                padding-bottom: 3.5rem;
             }
         }
         

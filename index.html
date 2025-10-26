@@ -19,8 +19,10 @@
                 padding-right: 0.5rem;
             }
             
+            /* Increase base font size and line height for readability on mobile【887358294326863†L199-L208】 */
             body {
-                font-size: 14px;
+                font-size: 16px;
+                line-height: 1.5;
             }
             
             h1 {
@@ -31,9 +33,10 @@
                 padding: 0.5rem !important;
             }
             
+            /* Enlarge touch targets to a minimum of 44×44 px【887358294326863†L187-L189】 */
             button, input, select {
-                min-height: 40px;
-                font-size: 14px;
+                min-height: 44px;
+                font-size: 16px;
             }
             
             input[type="text"], input[type="number"] {
@@ -45,6 +48,30 @@
                 max-width: 320px !important;
                 bottom: 0.5rem !important;
                 right: 0.5rem !important;
+            }
+
+            /* Position navigation at the bottom on mobile for thumb reach【887358294326863†L215-L223】 */
+            #navWrapper {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                margin-top: 0 !important;
+                top: auto !important;
+                z-index: 1000;
+                background-color: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            }
+
+            #navContainer .flex {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            /* Add padding to content to prevent overlap with the fixed navigation */
+            #contentContainer {
+                padding-bottom: 3.5rem;
             }
         }
         
