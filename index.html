@@ -74,6 +74,26 @@
                 margin-bottom: 0 !important;
             }
 
+            /* Force navigation to remain horizontal on mobile, overriding theme styles. */
+            #navContainer {
+                display: flex !important;
+                flex-direction: row !important;
+            }
+            #navContainer > div {
+                flex-direction: row !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                border-bottom: none !important;
+            }
+            #navContainer button {
+                flex: 1 1 0 !important;
+                width: auto !important;
+            }
+            #contentContainer {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
             /* Add padding to content to prevent overlap with the fixed navigation */
             #contentContainer {
                 /* Increase bottom padding to prevent content from being obscured by

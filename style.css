@@ -92,6 +92,32 @@ header {
                 margin-bottom: 0 !important;
             }
 
+            /* Force the navigation layout to remain horizontal on small screens even
+             * when themes attempt to stack the buttons vertically. Without this
+             * override, some themes (e.g., Zen Minimal) apply `flex-direction:
+             * column` with `!important`, which causes the nav to appear as a
+             * sidebar. Adding our own `!important` ensures a row layout. */
+            #navContainer {
+                display: flex !important;
+                flex-direction: row !important;
+            }
+            #navContainer > div {
+                flex-direction: row !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                border-bottom: none !important;
+            }
+            #navContainer button {
+                flex: 1 1 0 !important;
+                width: auto !important;
+            }
+
+            /* Reset any left margin that themes apply for vertical sidebars. */
+            #contentContainer {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
             /* Provide bottom padding so content isn't obscured by the fixed nav bar */
             #contentContainer {
                 /* Increase bottom padding so that long lists (like the cart) are not
