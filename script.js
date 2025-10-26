@@ -612,7 +612,13 @@ async function syncPendingData(showLoader = false) {
  *
  * @param {boolean} silent If true, suppress alerts and loading overlays.
  */
-async function processPendingDeltas(silent = false) {
+// By default, processPendingDeltas will run in silent mode.  This avoids
+// showing a full‑screen overlay when there are pending offline changes.  The
+// overlay can still be shown by explicitly passing `false` for the silent
+// argument when invoking the function.  Running silently updates the
+// status text but does not block the UI, which makes the application feel
+// more responsive when syncing a backlog of operations.
+async function processPendingDeltas(silent = true) {
     if (!pendingDeltas || pendingDeltas.length === 0) {
         // No queued operations; clear the syncPending flag so the UI does not remain in
         // a pending state.  Without this early reset, toggling auto sync while
