@@ -1,6 +1,17 @@
 body {
             box-sizing: border-box;
         }
+
+/* Make the page header sticky so it remains visible when the user scrolls.
+ * Position: sticky anchors the element relative to the viewport until
+ * its containing block is scrolled offscreen. A high z-index ensures it
+ * stays above other content. This improves navigation context on mobile and
+ * desktop. */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
         
         /* Mobile optimizations */
         @media (max-width: 640px) {
@@ -83,7 +94,19 @@ body {
 
             /* Provide bottom padding so content isn't obscured by the fixed nav bar */
             #contentContainer {
-                padding-bottom: 3.5rem;
+                /* Increase bottom padding so that long lists (like the cart) are not
+                 * obscured by the fixed bottom navigation bar. The padding value
+                 * roughly matches the nav height plus extra breathing room. */
+                padding-bottom: 5rem;
+            }
+
+            /* Allow modal content to scroll within the viewport on small screens.
+             * Without this, forms can extend beyond the viewable area when the
+             * virtual keyboard is open. This rule targets the immediate child
+             * of any modal container, which is the white card containing the form. */
+            div[id$="Modal"] > div {
+                max-height: 90vh;
+                overflow-y: auto;
             }
 
             /* Hide the sync status and control buttons on mobile to prevent

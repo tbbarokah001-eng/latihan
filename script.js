@@ -8848,23 +8848,6 @@ function applyTheme(idx) {
         index = idNum - 1;
     }
     if (index < 0 || index >= themes.length) return;
-    // If the screen width is 640px or less, skip applying the theme entirely.
-    // Many of the Zen Minimal themes reposition navigation into a sidebar with
-    // high‑specificity rules (e.g. flex‑direction: column) that override our
-    // mobile layout adjustments. To avoid these conflicts, we avoid injecting
-    // theme CSS on small screens. Users will instead see the default styles
-    // which are optimised for mobile【887358294326863†L187-L193】.  Remove any
-    // previously applied theme so it doesn't persist when resizing.
-    if (typeof window !== 'undefined' && window.innerWidth <= 640) {
-        const existing = document.getElementById('activeTheme');
-        if (existing && existing.parentNode) {
-            existing.parentNode.removeChild(existing);
-        }
-        // Hide the menu and return without injecting theme CSS
-        const menu = document.getElementById('themeMenu');
-        if (menu) menu.classList.add('hidden');
-        return;
-    }
     // Remove old theme
     const oldStyle = document.getElementById('activeTheme');
     if (oldStyle && oldStyle.parentNode) {

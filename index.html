@@ -76,7 +76,15 @@
 
             /* Add padding to content to prevent overlap with the fixed navigation */
             #contentContainer {
-                padding-bottom: 3.5rem;
+                /* Increase bottom padding to prevent content from being obscured by
+                 * the bottom navigation bar. */
+                padding-bottom: 5rem;
+            }
+
+            /* Enable scrolling within modal dialogs on small screens. */
+            div[id$="Modal"] > div {
+                max-height: 90vh;
+                overflow-y: auto;
             }
 
             /* Hide the sync status and control buttons on mobile to prevent
@@ -86,6 +94,13 @@
             #syncControlContainer {
                 display: none;
             }
+        }
+
+        /* Make the header sticky across scroll for both mobile and desktop. */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .scanner-line {
