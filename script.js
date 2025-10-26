@@ -612,13 +612,7 @@ async function syncPendingData(showLoader = false) {
  *
  * @param {boolean} silent If true, suppress alerts and loading overlays.
  */
-// By default, processPendingDeltas will run in silent mode.  This avoids
-// showing a full‑screen overlay when there are pending offline changes.  The
-// overlay can still be shown by explicitly passing `false` for the silent
-// argument when invoking the function.  Running silently updates the
-// status text but does not block the UI, which makes the application feel
-// more responsive when syncing a backlog of operations.
-async function processPendingDeltas(silent = true) {
+async function processPendingDeltas(silent = false) {
     if (!pendingDeltas || pendingDeltas.length === 0) {
         // No queued operations; clear the syncPending flag so the UI does not remain in
         // a pending state.  Without this early reset, toggling auto sync while
@@ -8854,6 +8848,23 @@ function applyTheme(idx) {
         index = idNum - 1;
     }
     if (index < 0 || index >= themes.length) return;
+    // If the screen width is 640px or less, skip applying the theme entirely.
+    // Many of the Zen Minimal themes reposition navigation into a sidebar with
+    // high‑specificity rules (e.g. flex‑direction: column) that override our
+    // mobile layout adjustments. To avoid these conflicts, we avoid injecting
+    // theme CSS on small screens. Users will instead see the default styles
+    // which are optimised for mobile【887358294326863†L187-L193】.  Remove any
+    // previously applied theme so it doesn't persist when resizing.
+    if (typeof window !== 'undefined' && window.innerWidth <= 640) {
+        const existing = document.getElementById('activeTheme');
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+        // Hide the menu and return without injecting theme CSS
+        const menu = document.getElementById('themeMenu');
+        if (menu) menu.classList.add('hidden');
+        return;
+    }
     // Remove old theme
     const oldStyle = document.getElementById('activeTheme');
     if (oldStyle && oldStyle.parentNode) {
