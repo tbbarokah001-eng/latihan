@@ -9,8 +9,14 @@ body {
                 padding-right: 0.5rem;
             }
             
+            /*
+             * Increase the base font size on small screens to improve
+             * readability. A minimum of 16px is recommended for mobile
+             * devices【887358294326863†L199-L208】.  This change helps ensure that text
+             * remains legible without requiring users to zoom.
+             */
             body {
-                font-size: 14px;
+                font-size: 16px;
             }
             
             h1 {
@@ -21,9 +27,15 @@ body {
                 padding: 0.5rem !important;
             }
             
+            /*
+             * Enlarge interactive elements on mobile to meet the WCAG
+             * recommendation of at least 44x44 px for touch targets【887358294326863†L187-L189】.
+             * Increasing the font size also aids discoverability and ease of
+             * interaction on small screens.
+             */
             button, input, select {
-                min-height: 40px;
-                font-size: 14px;
+                min-height: 44px;
+                font-size: 16px;
             }
             
             input[type="text"], input[type="number"] {
