@@ -69,9 +69,22 @@
                 white-space: nowrap;
             }
 
+            /* Remove bottom margin on the nav container when fixed to the bottom. */
+            #navContainer {
+                margin-bottom: 0 !important;
+            }
+
             /* Add padding to content to prevent overlap with the fixed navigation */
             #contentContainer {
                 padding-bottom: 3.5rem;
+            }
+
+            /* Hide the sync status and control buttons on mobile to prevent
+             * clutter and overlapping with the bottom navigation bar. Users
+             * can still access the sync history via the dedicated mobile
+             * button within the nav bar. */
+            #syncControlContainer {
+                display: none;
             }
         }
         

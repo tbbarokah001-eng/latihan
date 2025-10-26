@@ -74,9 +74,24 @@ body {
                 white-space: nowrap;
             }
 
+            /* Remove bottom margin on the nav container when it's fixed to the bottom.
+             * The original `mb-3 sm:mb-6` utility classes push the bar upward,
+             * causing unnecessary spacing and potential overlap with other elements. */
+            #navContainer {
+                margin-bottom: 0 !important;
+            }
+
             /* Provide bottom padding so content isn't obscured by the fixed nav bar */
             #contentContainer {
                 padding-bottom: 3.5rem;
+            }
+
+            /* Hide the sync status and control buttons on mobile to prevent
+             * clutter and overlapping with the bottom navigation bar. Users
+             * can still access the sync history via the dedicated mobile
+             * button within the nav bar. */
+            #syncControlContainer {
+                display: none;
             }
         }
         
