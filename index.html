@@ -64,6 +64,14 @@
                     box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
                 }
 
+                /* Remove horizontal padding inherited from the outer container on small screens.
+                 * This ensures the navigation buttons span the full width from left to right. */
+                #navWrapper {
+                    margin-left: -0.5rem;
+                    margin-right: -0.5rem;
+                    width: calc(100% + 1rem);
+                }
+
                 #navContainer .flex {
                     overflow-x: auto;
                     white-space: nowrap;
@@ -391,30 +399,28 @@
                 <!-- Navigation Tabs -->
                 <div id="navContainer" class="bg-white rounded-lg sm:rounded-xl shadow-lg mb-3 sm:mb-6">
                     <div class="flex border-b border-gray-200 overflow-x-auto">
-                    <button onclick="switchTab('scanner')" id="scannerTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors bg-green-500 text-white rounded-tl-lg sm:rounded-tl-xl whitespace-nowrap text-xs sm:text-base">
-                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
-                            <span class="text-xl">📷</span>
-                            <span class="text-[10px] sm:text-base sm:ml-2">Scanner</span>
-                        </div>
+                    <button onclick="switchTab('scanner')" id="scannerTab" class="flex-1 py-2 sm:py-3 flex flex-col items-center justify-center">
+                        <!-- Circular icon for scanner. Always visible on mobile; label appears on larger screens -->
+                        <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-green-500 text-white text-xl">📷</span>
+                        <span class="hidden sm:block text-xs mt-1 text-gray-700">Scanner</span>
                     </button>
-                    <button onclick="switchTab('products')" id="productsTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 whitespace-nowrap text-xs sm:text-base">
-                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
-                            <span class="text-xl">📦</span>
-                            <span class="text-[10px] sm:text-base sm:ml-2">Produk</span>
-                        </div>
+                    <button onclick="switchTab('products')" id="productsTab" class="flex-1 py-2 sm:py-3 flex flex-col items-center justify-center">
+                        <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-500 text-white text-xl">📦</span>
+                        <span class="hidden sm:block text-xs mt-1 text-gray-700">Produk</span>
                     </button>
                     <!-- Navigation tab for transaction history (Riwayat). Visible to users. -->
-                    <button onclick="switchTab('history')" id="historyTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 whitespace-nowrap text-xs sm:text-base">
-                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
-                            <span class="text-xl">🕒</span>
-                            <span class="text-[10px] sm:text-base sm:ml-2">Riwayat</span>
-                        </div>
+                    <button onclick="switchTab('history')" id="historyTab" class="flex-1 py-2 sm:py-3 flex flex-col items-center justify-center">
+                        <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-500 text-white text-xl">🕒</span>
+                        <span class="hidden sm:block text-xs mt-1 text-gray-700">Riwayat</span>
                     </button>
-                    <button onclick="switchTab('analysis')" id="analysisTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-tr-lg sm:rounded-tr-xl whitespace-nowrap text-xs sm:text-base">
-                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
-                            <span class="text-xl">📈</span>
-                            <span class="text-[10px] sm:text-base sm:ml-2">Analisa</span>
-                        </div>
+                    <button onclick="switchTab('analysis')" id="analysisTab" class="flex-1 py-2 sm:py-3 flex flex-col items-center justify-center">
+                        <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-yellow-500 text-white text-xl">📈</span>
+                        <span class="hidden sm:block text-xs mt-1 text-gray-700">Analisa</span>
+                    </button>
+                    <!-- Cart button: toggles the floating cart. Now positioned at the far right of the navigation bar. -->
+                    <button onclick="toggleCart()" id="cartTab" class="flex-1 py-2 sm:py-3 flex flex-col items-center justify-center rounded-tr-lg sm:rounded-tr-xl">
+                        <span class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-red-500 text-white text-xl">🛒</span>
+                        <span class="hidden sm:block text-xs mt-1 text-gray-700">Keranjang</span>
                     </button>
                     </div>
                 </div>
@@ -1467,6 +1473,18 @@
               }
             }
           });
+        </script>
+
+        <!-- Toggle cart visibility when the cart button is pressed. This will simply
+             show or hide the floating cart element (#floatingCart) by toggling
+             its 'hidden' class. -->
+        <script>
+          function toggleCart() {
+            var cart = document.getElementById('floatingCart');
+            if (cart) {
+              cart.classList.toggle('hidden');
+            }
+          }
         </script>
     </body>
     </html>
