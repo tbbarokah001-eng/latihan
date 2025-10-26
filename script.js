@@ -8848,6 +8848,21 @@ function applyTheme(idx) {
         index = idNum - 1;
     }
     if (index < 0 || index >= themes.length) return;
+    // On small screens (≤ 640px), skip injecting theme CSS. Many themes (e.g. Zen Minimal)
+    // reposition the navigation bar into a vertical sidebar using high‑specificity rules
+    // that conflict with our mobile layout. Removing the theme on mobile ensures the
+    // default responsive styling remains intact【887358294326863†L187-L193】.
+    if (typeof window !== 'undefined' && window.innerWidth <= 640) {
+        // Remove any previously applied theme style element
+        const existing = document.getElementById('activeTheme');
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+        // Hide the theme menu and return early
+        const menu = document.getElementById('themeMenu');
+        if (menu) menu.classList.add('hidden');
+        return;
+    }
     // Remove old theme
     const oldStyle = document.getElementById('activeTheme');
     if (oldStyle && oldStyle.parentNode) {
