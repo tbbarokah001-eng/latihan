@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir Warung - Sistem POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link external stylesheet for custom styles -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            body {
+                font-size: 14px;
+            }
+            
+            h1 {
+                font-size: 1.25rem !important;
+            }
+            
+            .mobile-compact {
+                padding: 0.5rem !important;
+            }
+            
+            button, input, select {
+                min-height: 40px;
+                font-size: 14px;
+            }
+            
+            input[type="text"], input[type="number"] {
+                font-size: 16px;
+            }
+            
+            #floatingCart {
+                width: calc(100vw - 1rem) !important;
+                max-width: 320px !important;
+                bottom: 0.5rem !important;
+                right: 0.5rem !important;
+            }
+        }
+        
+        .scanner-line {
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+            0%, 100% { transform: translateY(-100%); }
+            50% { transform: translateY(100%); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.5s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .pulse-success {
+            animation: pulseSuccess 0.6s ease-out;
+        }
+        @keyframes pulseSuccess {
+            0% { transform: scale(1); background-color: rgb(34 197 94); }
+            50% { transform: scale(1.05); background-color: rgb(22 163 74); }
+            100% { transform: scale(1); background-color: rgb(34 197 94); }
+        }
+        
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .active-press {
+            transition: transform 0.1s ease;
+        }
+        .active-press:active {
+            transform: scale(0.95);
+        }
+
+        .stock-critical {
+            background: linear-gradient(45deg, #fee2e2, #fecaca);
+            border-color: #f87171;
+        }
+        
+        .stock-low {
+            background: linear-gradient(45deg, #fef3c7, #fde68a);
+            border-color: #f59e0b;
+        }
+        
+        .stock-ok {
+            background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+            border-color: #22c55e;
+        }
+
+        .printer-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .printer-connected {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .printer-disconnected {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        /* Loading spinner styles */
+        /* A simple spinner displayed in the loading overlay. The border-top color
+           can be changed to match the application's theme. */
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3490dc;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+        /* Snowfall animation and cool atmosphere overlay
+           This container holds multiple snowflake elements that drift down from the top
+           of the viewport. Each flake has a different size, duration and delay to
+           create a varied and soothing snowfall effect. */
+        #snowfall {
+            pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        #snowfall .flake {
+            position: absolute;
+            top: -10%;
+            width: 8px;
+            height: 8px;
+            opacity: 0.9;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation-name: fallSnow;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+        @keyframes fallSnow {
+            0% {
+                transform: translateY(-10vh);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh);
+                opacity: 0.6;
+            }
+        }
+        /* Set individual positions, delays, durations, and optional size adjustments for each flake */
+        #snowfall .flake:nth-child(1)  { left: 5%;  animation-duration: 8s;  animation-delay: 0s;   width: 6px; height: 6px; }
+        #snowfall .flake:nth-child(2)  { left: 12%; animation-duration: 9s;  animation-delay: 2s;   width: 7px; height: 7px; }
+        #snowfall .flake:nth-child(3)  { left: 20%; animation-duration: 7s;  animation-delay: 4s;   width: 5px; height: 5px; }
+        #snowfall .flake:nth-child(4)  { left: 28%; animation-duration: 11s; animation-delay: 1s;   width: 6px; height: 6px; }
+        #snowfall .flake:nth-child(5)  { left: 36%; animation-duration: 8s;  animation-delay: 3s;   width: 8px; height: 8px; }
+        #snowfall .flake:nth-child(6)  { left: 44%; animation-duration: 10s; animation-delay: 5s;   width: 9px; height: 9px; }
+        #snowfall .flake:nth-child(7)  { left: 52%; animation-duration: 12s; animation-delay: 0.5s; width: 6px; height: 6px; }
+        #snowfall .flake:nth-child(8)  { left: 60%; animation-duration: 6s;  animation-delay: 2.5s; width: 5px; height: 5px; }
+        #snowfall .flake:nth-child(9)  { left: 68%; animation-duration: 9s;  animation-delay: 6s;   width: 7px; height: 7px; }
+        #snowfall .flake:nth-child(10) { left: 76%; animation-duration: 8s;  animation-delay: 1.5s; width: 8px; height: 8px; }
+        #snowfall .flake:nth-child(11) { left: 84%; animation-duration: 11s; animation-delay: 3.5s; width: 6px; height: 6px; }
+        #snowfall .flake:nth-child(12) { left: 92%; animation-duration: 9s;  animation-delay: 0.8s; width: 5px; height: 5px; }
+        #snowfall .flake:nth-child(13) { left: 16%; animation-duration: 13s; animation-delay: 4.2s; width: 7px; height: 7px; }
+        #snowfall .flake:nth-child(14) { left: 40%; animation-duration: 8s;  animation-delay: 2.8s; width: 5px; height: 5px; }
+        #snowfall .flake:nth-child(15) { left: 72%; animation-duration: 10s; animation-delay: 5.5s; width: 6px; height: 6px; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+
+    <!-- Falling flowers container: This fixed layer sits behind all content and
+         contains multiple flower spans that animate downward to evoke the
+         feeling of petals floating gently through the air. It helps create
+         a cool, calming atmosphere on the page. -->
+    <div id="snowfall">
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+        <span class="flake"></span>
+    </div>
+    <!-- Printer Status -->
+    <div id="printerStatus" class="printer-status printer-disconnected hidden">
+        🖨️ Printer Terputus
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-green-500">
+        <div class="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-1 sm:space-x-3">
+                    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-1 sm:p-2 rounded-lg shadow-lg">
+                        <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7V10C2 16 6 20.9 12 22C18 20.9 22 16 22 10V7L12 2ZM12 4.3L20 8.2V10C20 15.5 16.64 19.88 12 20.9C7.36 19.88 4 15.5 4 10V8.2L12 4.3ZM10.5 12.5L8.5 10.5L7 12L10.5 15.5L17 9L15.5 7.5L10.5 12.5Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-2xl font-bold text-gray-800">TOKO BAROKAH</h1>
+                        <p class="text-xs sm:text-sm text-gray-600">RT 02 Desa Pematang Gadung</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1 sm:space-x-4">
+                    <div class="text-right hidden md:block">
+                        <div class="text-xs sm:text-sm text-gray-600">Kasir: Admin</div>
+                        <div class="text-xs sm:text-sm font-semibold text-green-600" id="currentTime"></div>
+                    </div>
+                    <button onclick="connectThermalPrinter()" class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-base hover-lift active-press">
+                        🖨️ <span class="hidden sm:inline">Printer</span>
+                    </button>
+                    <button onclick="showReports()" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-base hover-lift active-press">
+                        📊 <span class="hidden sm:inline">Laporan</span>
+                    </button>
+                    <!-- Toggle for global barcode scan standby -->
+                    <button id="toggleScanButton" onclick="toggleGlobalScanner()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-base hover-lift active-press">
+                        🔄 <span class="hidden sm:inline">Scan ON</span>
+                    </button>
+                    <!-- Theme selection button placed in the header alongside other controls -->
+                    <button onclick="toggleThemeMenu()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-base hover-lift active-press">
+                        🎨 <span class="hidden sm:inline">Tema</span>
+                    </button>
+                    <!-- Sync history button removed as per user request -->
+                    <!--
+                    <button id="syncHistoryButton" onclick="showSyncHistoryModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-base hover-lift active-press">
+                        🕒 <span class="hidden sm:inline">Riwayat</span> (<span id="historyCount">0</span>)
+                    </button>
+                    -->
+                    <!-- Logout button: hidden by default and shown when the user is logged in.  The logout function is defined in script.js -->
+                    <button id="logoutButton" onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-base hover-lift active-press hidden">
+                        🚪 <span class="hidden sm:inline">Logout</span>
+                    </button>
+                    <!-- Export and Import buttons removed: data is now imported automatically on page load and updated silently after changes -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
+        <!--
+            Wrap the navigation tabs inside a dedicated wrapper with an id. This
+            wrapper allows theme CSS to reposition the navigation into a sidebar
+            for certain themes (like the Zen Minimal variants). The nav
+            container itself also receives an id so it can be styled
+            independently from the rest of the page.  Below the nav wrapper we
+            place a separate content container that holds all tab panels.  By
+            default the layout remains horizontal as originally designed, but
+            themes can override positions and dimensions of these elements.
+        -->
+        <div id="navWrapper">
+            <!-- Navigation Tabs -->
+            <div id="navContainer" class="bg-white rounded-lg sm:rounded-xl shadow-lg mb-3 sm:mb-6">
+                <div class="flex border-b border-gray-200 overflow-x-auto">
+                <button onclick="switchTab('scanner')" id="scannerTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors bg-green-500 text-white rounded-tl-lg sm:rounded-tl-xl whitespace-nowrap text-xs sm:text-base">
+                    📱 <span class="hidden sm:inline">Scanner</span>
+                </button>
+                <button onclick="switchTab('products')" id="productsTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 whitespace-nowrap text-xs sm:text-base">
+                    📦 <span class="hidden sm:inline">Produk</span>
+                </button>
+                <!-- Navigation tab for transaction history (Riwayat). Visible to users. -->
+                <button onclick="switchTab('history')" id="historyTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 whitespace-nowrap text-xs sm:text-base">
+                    📜 <span class="hidden sm:inline">Riwayat</span>
+                </button>
+                <button onclick="switchTab('analysis')" id="analysisTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-tr-lg sm:rounded-tr-xl whitespace-nowrap text-xs sm:text-base">
+                    📊 <span class="hidden sm:inline">Analisa</span>
+                </button>
+                </div>
+            </div>
+            <!-- Sync Status and Controls -->
+            <div id="syncControlContainer" class="flex flex-wrap justify-between items-center mb-3 px-2">
+                <div id="syncStatus" class="text-xs sm:text-sm font-medium"></div>
+                <div class="flex items-center space-x-2">
+                    <button id="autoSyncToggle" onclick="toggleAutoSync()" class="px-2 py-1 text-xs sm:text-sm rounded-lg focus:outline-none"></button>
+                    <button id="pendingChangesButton" onclick="showPendingChangesModal()" class="px-2 py-1 text-xs sm:text-sm rounded-lg bg-yellow-500 text-white hidden">
+                        Perubahan (<span id="pendingCount">0</span>)
+                    </button>
+                    <!-- Mobile sync history button: visible on small screens; displays number of sync events. -->
+                    <button id="syncHistoryButtonMobile" onclick="showSyncHistoryModal()" class="sm:hidden px-2 py-1 text-xs sm:text-sm rounded-lg bg-indigo-500 text-white">
+                        🕒 <span>Riwayat</span> (<span id="historyCountMobile">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="contentContainer" class="space-y-6">
+            <!-- Scanner Tab -->
+            <div id="scannerContent" class="tab-content">
+                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <span class="bg-green-100 text-green-600 p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3">📱</span>
+                        <span class="text-sm sm:text-lg">Scanner Barcode</span>
+                    </h2>
+                    <div class="relative">
+                        <!-- Kolom input untuk ketik atau scan barcode. 
+                             Hanya menampilkan kolom input tanpa kotak kamera atau area bergaris yang mengganggu. -->
+                        <input type="text" id="barcodeInput" placeholder="Ketik atau scan barcode..." 
+                               class="w-full mt-3 sm:mt-4 px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none text-base sm:text-lg">
+
+                        <!-- Product Suggestions -->
+                        <div id="productSuggestions" class="hidden mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        </div>
+
+                        <!-- Mobile scanning options (only shown on mobile devices) -->
+                        <div id="mobileScanOptions" class="flex justify-center space-x-3 mt-3 hidden">
+                            <button id="startCameraScanButton" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold active-press">📷 Scan Kamera</button>
+                            <button id="stopCameraScanButton" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-semibold active-press hidden">✖️ Stop Scan</button>
+                        </div>
+                        <!-- Container where the camera stream will be displayed during scanning -->
+                        <div id="cameraScanner" class="mt-3 hidden"></div>
+                    </div>
+
+                    <!-- Cart and Hold Containers -->
+                    <div class="mt-6 flex flex-col md:flex-row gap-4">
+                        <!-- Cart (Product Table) -->
+                        <!--
+                            Use flex-grow instead of a fixed width on medium screens so the cart
+                            container will automatically expand to fill the available horizontal
+                            space when the hold sidebar is hidden. When the hold list is shown,
+                            the sidebar will occupy a fixed width and the cart will shrink
+                            accordingly, but without leaving an empty area when no holds exist.
+                        -->
+                        <div class="bg-gray-50 rounded-lg p-4 w-full md:flex-grow">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex justify-between items-center">
+                            <!-- Bagian kiri: ikon dan judul daftar produk -->
+                            <div class="flex items-center">
+                                <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg mr-2">📋</span>
+                                <!-- Renamed header to reflect the contents below, which show the cart items -->
+                                <span>Keranjang</span>
+                            </div>
+                            <!-- Notifikasi total bayar akan muncul di kanan bila keranjang tidak kosong -->
+                            <!-- Notification for total payment. To maximize readability, we use a dark background and bright green
+                                 text. The badge becomes highly visible even at a glance. Hidden by default until items are
+                                 in the cart. -->
+                            <div id="totalPayNotice" class="hidden px-3 py-1 rounded-md bg-black shadow-md text-green-400 font-extrabold text-xl tracking-wide"
+                                 style="
+                                    /* Optional: small glow around the text for extra contrast */
+                                    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+                                ">
+                                Total Bayar: <span id="totalPayAmount">Rp 0</span>
+                            </div>
+                        </h3>
+                        
+                        <!-- Search for table -->
+                        <div class="mb-4 relative">
+                            <input type="text" id="scannerProductSearch" placeholder="Cari produk dalam keranjang..." 
+                                   class="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                                   oninput="searchScannerProducts(this.value)" onkeypress="handleScannerTableSearch(event)">
+                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</div>
+                        </div>
+
+                        <!-- Product Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full bg-white border border-gray-200 rounded-lg text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <!-- Header order updated to match cart columns rendered by displayScannerProductTable():
+                                             Nama Produk | Harga | Jumlah | Diskon (Rp) | Total | Aksi -->
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-700">Nama Produk</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700">Harga</th>
+                                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Jumlah</th>
+                                        <!-- New Discount column shows per‑item discount in Rupiah -->
+                                        <!-- Center align the Diskon (Rp) header to match the centered discount controls in each row -->
+                                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Diskon (Rp)</th>
+                                        <th class="px-4 py-3 text-right font-semibold text-gray-700">Total</th>
+                                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scannerProductTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                        <!-- Hold Transactions Box (hidden by default; will be shown when holds exist) -->
+                        <div id="holdListBox" class="bg-gray-50 rounded-lg p-4 md:w-1/4 hidden">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <span class="bg-yellow-100 text-yellow-600 p-1.5 rounded-lg mr-2">⏸️</span>
+                                <span>Transaksi Hold</span>
+                            </h3>
+                            <div id="holdSidebarList" class="space-y-3 text-sm">
+                                <!-- Konten daftar hold akan ditambahkan melalui script -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Tab -->
+            <div id="productsContent" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-3 sm:space-y-0">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="bg-purple-100 text-purple-600 p-2 rounded-lg mr-3">📦</span>
+                            Produk Tersimpan
+                        </h2>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="mb-4 relative">
+                        <input type="text" id="productSearchInput" placeholder="Cari produk..." 
+                               class="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                               oninput="searchProducts(this.value)">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</div>
+                    </div>
+
+                    <!-- View Mode Toggle Buttons -->
+                    <div class="mb-4 flex space-x-2">
+                        <button id="viewGridButton" onclick="setProductViewMode('grid')" 
+                                class="px-3 py-1 rounded-lg text-sm font-semibold active-press bg-green-500 text-white hover:bg-green-600">
+                            Grid
+                        </button>
+                        <button id="viewTableButton" onclick="setProductViewMode('table')" 
+                                class="px-3 py-1 rounded-lg text-sm font-semibold active-press bg-gray-200 text-gray-700 hover:bg-gray-300">
+                            Tabel
+                        </button>
+                        <button id="viewListButton" onclick="setProductViewMode('list')" 
+                                class="px-3 py-1 rounded-lg text-sm font-semibold active-press bg-gray-200 text-gray-700 hover:bg-gray-300">
+                            List
+                        </button>
+                    </div>
+
+                    <!-- Add Product Button -->
+                    <button onclick="showAddProductModal()" 
+                            class="mb-4 w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors">
+                        ➕ Tambah Produk Baru
+                    </button>
+
+                    <!-- Products Container -->
+                    <div id="savedProducts" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="historyContent" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-3 sm:space-y-0">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="bg-indigo-100 text-indigo-600 p-2 rounded-lg mr-3">📜</span>
+                            Riwayat Transaksi
+                        </h2>
+                        
+                        <!-- Filter Options -->
+                        <div class="flex items-center space-x-2">
+                            <select id="historyFilter" onchange="filterTransactionHistory()" 
+                                    class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:border-indigo-500 focus:outline-none">
+                                <option value="all">Semua</option>
+                                <option value="today">Hari Ini</option>
+                                <option value="week">Minggu Ini</option>
+                                <option value="month">Bulan Ini</option>
+                                <option value="full">Lunas</option>
+                                <option value="partial">Hutang</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="mb-4 relative">
+                        <input type="text" id="historySearchInput" placeholder="Cari transaksi..." 
+                               class="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                               oninput="searchTransactionHistory(this.value)">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</div>
+                    </div>
+
+                    <!-- Transaction History -->
+                    <div id="transactionHistory" class="space-y-3 max-h-96 overflow-y-auto">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tab -->
+            <div id="analysisContent" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="bg-indigo-100 text-indigo-600 p-2 rounded-lg mr-3">📊</span>
+                        Analisa Laba Rugi
+                    </h2>
+                    
+                    <!-- Summary Cards -->
+                    <!--
+                        Update the summary card grid to accommodate an additional card for
+                        "Jumlah Sedekah Hari Ini".  On medium screens and above the grid
+                        now uses five columns instead of four.  Each card displays a
+                        high‑level metric for the current analysis period.  The new
+                        sedekah card sits alongside the existing revenue, modal, profit
+                        and ROI cards.
+                    -->
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2">💰 Total Penjualan</h4>
+                            <div class="text-xl font-bold text-green-600" id="totalRevenue">Rp 0</div>
+                            <div class="text-sm text-gray-600" id="revenueCount">0 transaksi</div>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-red-800 mb-2">📦 Total Modal</h4>
+                            <div class="text-xl font-bold text-red-600" id="totalModal">Rp 0</div>
+                            <div class="text-sm text-gray-600">harga pokok penjualan</div>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2">📈 Laba Kotor</h4>
+                            <div class="text-xl font-bold text-blue-600" id="grossProfit">Rp 0</div>
+                            <div class="text-sm text-gray-600" id="profitMargin">0% margin</div>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-purple-800 mb-2">🎯 ROI</h4>
+                            <div class="text-xl font-bold text-purple-600" id="roi">0%</div>
+                            <div class="text-sm text-gray-600">return on investment</div>
+                        </div>
+                        <!-- Sedekah card: displays 2,5% dari laba kotor for the current period -->
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-yellow-800 mb-2">🤲 Jumlah Sedekah Hari Ini</h4>
+                            <div class="text-xl font-bold text-yellow-600" id="sedekahAmount">Rp 0</div>
+                            <div class="text-sm text-gray-600">2,5% dari laba kotor</div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Periode -->
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Filter Periode</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <button onclick="filterAnalysis('today')" id="filterToday" class="bg-green-500 text-white py-2 px-4 rounded-lg font-semibold">
+                                Hari Ini
+                            </button>
+                            <button onclick="filterAnalysis('week')" id="filterWeek" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-semibold">
+                                Minggu Ini
+                            </button>
+                            <button onclick="filterAnalysis('month')" id="filterMonth" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-semibold">
+                                Bulan Ini
+                            </button>
+                            <button onclick="filterAnalysis('all')" id="filterAll" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-semibold">
+                                Semua
+                            </button>
+                        </div>
+                        <!-- Additional controls: previous/next day navigation for the Analysis tab -->
+                        <div id="analysisDateNavigation" class="hidden flex items-center justify-center space-x-2 mt-3">
+                            <button id="prevDayAnalysis" onclick="moveAnalysisDate(-1)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded-lg font-semibold">
+                                ←
+                            </button>
+                            <span id="analysisDateLabel" class="font-semibold text-gray-700"></span>
+                            <button id="nextDayAnalysis" onclick="moveAnalysisDate(1)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded-lg font-semibold">
+                                →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual Export Button -->
+                    <!--
+                        Tambah tombol untuk mengekspor data secara manual ke Google Sheets.  Tombol ini akan
+                        memicu fungsi manualExport() di script.js, yang memproses perubahan tertunda
+                        dan menyinkronkan data.  Hanya muncul di tab Analisa untuk menjaga UI sederhana.
+                    -->
+                    <div class="mb-6 flex justify-end">
+                        <button onclick="manualExport()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold">
+                            Export ke Google Sheets
+                        </button>
+                    </div>
+
+                    <!-- Product Analysis Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full bg-white border border-gray-200 rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Produk</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Terjual</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Penjualan</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Modal</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Laba</th>
+                                    <th class="px-4 py-3 text-right font-semibold text-gray-700">Margin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productAnalysisTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Selection Menu -->
+    <!-- This panel appears near the top right of the screen when the "Tema" button in the header is clicked.
+         Users can choose from ten distinct themes. A small coloured circle previews each theme's palette. -->
+    <div id="themeMenu" class="hidden fixed top-20 right-4 z-50 bg-white border border-gray-300 rounded-lg shadow-xl p-4 w-60 max-h-96 overflow-y-auto">
+        <div class="flex justify-between items-center mb-3">
+            <span class="font-semibold text-gray-700">Pilih Tema</span>
+            <button onclick="toggleThemeMenu()" class="text-gray-500 hover:text-gray-700">✖️</button>
+        </div>
+        <div class="space-y-2">
+            <button onclick="applyTheme(1)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 1</span>
+                <!-- Dark neutral preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #0f172a;"></span>
+            </button>
+            <button onclick="applyTheme(2)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 2</span>
+                <!-- Dark blue preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #0a192f;"></span>
+            </button>
+            <button onclick="applyTheme(3)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 3</span>
+                <!-- Dark green preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #032d26;"></span>
+            </button>
+            <button onclick="applyTheme(4)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 4</span>
+                <!-- Dark purple preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #2b1b4f;"></span>
+            </button>
+            <button onclick="applyTheme(5)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 5</span>
+                <!-- Dark teal preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #073642;"></span>
+            </button>
+            <button onclick="applyTheme(6)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 6</span>
+                <!-- Dark brown/orange preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #3f1f0b;"></span>
+            </button>
+            <button onclick="applyTheme(7)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 7</span>
+                <!-- High contrast preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #000000;"></span>
+            </button>
+            <button onclick="applyTheme(8)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 8</span>
+                <!-- Dark minimal grey preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #1a1a2e;"></span>
+            </button>
+            <button onclick="applyTheme(9)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 9</span>
+                <!-- Dark warm brown preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #2d1e16;"></span>
+            </button>
+            <button onclick="applyTheme(10)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 10</span>
+                <!-- Dark pink preview -->
+                <span class="w-4 h-4 rounded-full" style="background: #341f2e;"></span>
+            </button>
+
+            <!-- Additional Zen Minimal variations (Themes 21-30) -->
+            <button onclick="applyTheme(21)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 21</span>
+                <span class="w-4 h-4 rounded-full" style="background: #eff6ff;"></span>
+            </button>
+            <button onclick="applyTheme(22)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 22</span>
+                <span class="w-4 h-4 rounded-full" style="background: #f0fdf4;"></span>
+            </button>
+            <button onclick="applyTheme(23)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 23</span>
+                <span class="w-4 h-4 rounded-full" style="background: #faf5ff;"></span>
+            </button>
+            <button onclick="applyTheme(24)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 24</span>
+                <span class="w-4 h-4 rounded-full" style="background: #fff7ed;"></span>
+            </button>
+            <button onclick="applyTheme(25)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 25</span>
+                <span class="w-4 h-4 rounded-full" style="background: #fffbeb;"></span>
+            </button>
+            <button onclick="applyTheme(26)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 26</span>
+                <span class="w-4 h-4 rounded-full" style="background: #fdf2f8;"></span>
+            </button>
+            <button onclick="applyTheme(27)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 27</span>
+                <span class="w-4 h-4 rounded-full" style="background: #f3eee9;"></span>
+            </button>
+            <button onclick="applyTheme(28)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 28</span>
+                <span class="w-4 h-4 rounded-full" style="background: #f0fdfa;"></span>
+            </button>
+            <button onclick="applyTheme(29)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 29</span>
+                <span class="w-4 h-4 rounded-full" style="background: #f8fafc;"></span>
+            </button>
+            <button onclick="applyTheme(30)" class="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none">
+                <span>Tema 30</span>
+                <span class="w-4 h-4 rounded-full" style="background: #f3f4f6;"></span>
+            </button>
+        </div>
+    </div>
+    <!-- Floating Cart -->
+    <!-- Adjust width and size of the cart to improve readability. We use a wider width (w-96) and larger max width (max-w-md) so that long product names and totals fit comfortably. -->
+    <div id="floatingCart" class="fixed bottom-4 right-4 w-96 max-w-md bg-white rounded-xl shadow-2xl border-2 border-green-200 z-40 transition-all duration-300 hidden">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-t-xl">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold flex items-center">🛒 Keranjang</h2>
+                <div class="flex space-x-2">
+                    <button onclick="clearCart()" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">🗑️</button>
+                    <button onclick="toggleCart()" class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs font-semibold">➖</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="cartContent">
+            <!-- Increase max height to accommodate more items without scrolling excessively -->
+            <div class="p-4 max-h-96 overflow-y-auto">
+                <div id="cartItems" class="space-y-3">
+                    <div class="text-center text-gray-500 py-8">
+                        <p class="text-sm">Keranjang masih kosong</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-xl">
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="font-semibold">Subtotal:</span>
+                        <span id="subtotal" class="font-bold">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="font-semibold">Diskon:</span>
+                        <div class="flex items-center space-x-2">
+                            <!-- Discount type selector: choose between percentage (%) or nominal (Rp).
+                                 Place the selector before the numeric input for consistency with per‑item discounts. -->
+                            <select id="discountType" class="px-2 py-1 border rounded text-xs" onchange="updateTotal()">
+                                <!-- Set 'amount' as the default selection so that discounts are nominal (Rp) by default -->
+                                <option value="percent">%</option>
+                                <option value="amount" selected>Rp</option>
+                            </select>
+                            <!-- Discount value input: accepts either percentage or amount depending on the selected type -->
+                            <input type="number" id="discountInput" value="0" min="0" 
+                                   class="w-20 px-2 py-1 border rounded text-right text-xs" onchange="updateTotal()">
+                        </div>
+                    </div>
+                    <hr class="border-gray-300">
+                    <div class="flex justify-between text-lg font-bold text-green-600">
+                        <span>Total:</span>
+                        <span id="total">Rp 0</span>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <!-- When there are items in the cart the operator can either hold the transaction or proceed to payment.  Holding a transaction saves the current cart and discount settings to a list that can be resumed later. -->
+                        <div class="flex space-x-2">
+                            <button onclick="showHoldNameModal()" 
+                                    class="w-1/2 bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-lg font-bold text-sm transition-colors">
+                                ⏸️ HOLD
+                            </button>
+                            <button onclick="showUnifiedPaymentModal()" 
+                                    class="w-1/2 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-bold text-sm transition-colors">
+                                💳 BAYAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Toggle -->
+    <div id="cartToggle" class="fixed bottom-4 right-4 bg-green-500 hover:bg-green-600 text-white p-3 rounded-full shadow-lg cursor-pointer z-40 transition-all duration-300" onclick="toggleCart()">
+        <div class="flex items-center space-x-2">
+            <span class="text-lg">🛒</span>
+            <span id="cartItemCount" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold">0</span>
+        </div>
+    </div>
+
+    <!-- Hold Toggle -->
+    <!-- This floating button shows the number of held transactions. Clicking it opens a modal listing all held carts that can be resumed or deleted. -->
+    <!--
+        Hold Toggle
+
+        This floating button shows the number of held transactions and opens the hold list modal.
+        It is positioned to the left of the cart button in the lower-right corner so that it appears
+        adjacent to the cart toggle. The button remains hidden whenever the floating cart is open
+        or when there are no held transactions (handled in script.js).
+    -->
+    <div id="holdToggle" class="fixed bottom-4 right-16 bg-yellow-500 hover:bg-yellow-600 text-white p-3 rounded-full shadow-lg cursor-pointer z-40 transition-all duration-300 hidden" onclick="toggleHoldModal()">
+        <div class="flex items-center space-x-2">
+            <span class="text-lg">⏸️</span>
+            <span id="holdCount" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold">0</span>
+        </div>
+    </div>
+
+    <!-- Print Area -->
+    <div id="printArea" class="print-area hidden"></div>
+
+    <!-- Receipt Preview Modal -->
+    <!--
+        This modal displays a preview of the receipt after a transaction is processed.
+        The user can choose to print the receipt or simply close the preview.
+        Not all customers need a printed receipt, so this step gives the cashier
+        control over whether to send the receipt to the printer.  The modal
+        remains hidden until showReceiptPreview() is called from script.js.
+    -->
+    <div id="receiptPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-green-100 text-green-600 p-2 rounded-lg mr-3">🧾</span>
+                Preview Struk
+            </h3>
+            <!-- Container to render receipt HTML -->
+            <div id="receiptPreviewContent" class="mb-4 overflow-y-auto"></div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="printReceiptFromPreview()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-bold">
+                    🖨️ Cetak
+                </button>
+                <button onclick="closeReceiptPreview()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold">
+                    Keluar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Held Transactions Modal -->
+    <!-- Modal showing a list of transactions that have been held.  Each entry displays basic info and buttons to resume or delete the held transaction. -->
+    <div id="holdModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-600 p-2 rounded-lg mr-3">⏸️</span>
+                Transaksi Tertahan
+            </h3>
+            <div id="holdList" class="space-y-3">
+                <p class="text-sm text-gray-500 text-center">Belum ada transaksi tertahan</p>
+            </div>
+            <div class="flex justify-end pt-4">
+                <button onclick="closeHoldModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Name Prompt Modal -->
+    <!-- This modal appears when the cashier wants to hold a transaction.  The user can enter a custom name for the held transaction. -->
+    <div id="holdNameModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm">
+            <h3 class="text-lg font-bold mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-600 p-2 rounded-lg mr-3">📝</span>
+                Nama Transaksi
+            </h3>
+            <div class="mb-4">
+                <input type="text" id="holdNameInput" class="w-full px-4 py-2 border rounded-lg focus:border-yellow-500 focus:outline-none" placeholder="Masukkan nama transaksi...">
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button onclick="saveHoldName()" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg font-semibold">
+                    Simpan
+                </button>
+                <button onclick="closeHoldNameModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Tambah Produk Baru</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Produk</label>
+                    <input type="text" id="newProductName" class="w-full px-4 py-2 border rounded-lg focus:border-green-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Harga Jual</label>
+                    <input type="number" id="newProductPrice" class="w-full px-4 py-2 border rounded-lg focus:border-green-500 focus:outline-none" placeholder="Masukkan 0 untuk produk jasa">
+                    <div class="text-xs text-gray-500 mt-1">💡 Tip: Isi 0 untuk produk jasa (tidak perlu isi field lain)</div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Harga Modal</label>
+                    <input type="number" id="newProductModalPrice" class="w-full px-4 py-2 border rounded-lg focus:border-green-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Barcode</label>
+                    <input type="text" id="newProductBarcode" class="w-full px-4 py-2 border rounded-lg focus:border-green-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Stok</label>
+                        <input type="number" id="newProductStock" min="0" value="0" class="w-full px-4 py-2 border rounded-lg focus:border-green-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Min Stok</label>
+                        <input type="number" id="newProductMinStock" min="1" value="5" class="w-full px-4 py-2 border rounded-lg focus:border-green-500 focus:outline-none">
+                    </div>
+                </div>
+                
+                <!-- Wholesale Pricing Section -->
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+                        <span class="mr-2">🏪</span>
+                        Harga Grosir (Opsional)
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Min Qty Grosir</label>
+                            <input type="number" id="newProductWholesaleMinQty" min="2" placeholder="Contoh: 10" class="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none text-sm">
+                            <div class="text-xs text-gray-500 mt-1">Minimal beli untuk harga grosir</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Harga Grosir</label>
+                            <input type="number" id="newProductWholesalePrice" placeholder="Harga per unit" class="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none text-sm">
+                            <div class="text-xs text-gray-500 mt-1">Harga per unit saat beli grosir</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-blue-600 mt-2">
+                        💡 Contoh: Min 10 pcs = Rp 8.000/pcs (dari harga normal Rp 10.000/pcs)
+                    </div>
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="saveNewProduct()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-semibold">
+                        Simpan
+                    </button>
+                    <button onclick="closeAddProductModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Edit Produk</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Produk</label>
+                    <input type="text" id="editProductName" class="w-full px-4 py-2 border rounded-lg focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Harga Jual</label>
+                    <input type="number" id="editProductPrice" class="w-full px-4 py-2 border rounded-lg focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Harga Modal</label>
+                    <input type="number" id="editProductModalPrice" class="w-full px-4 py-2 border rounded-lg focus:border-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Barcode</label>
+                    <input type="text" id="editProductBarcode" class="w-full px-4 py-2 border rounded-lg focus:border-blue-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Stok</label>
+                        <input type="number" id="editProductStock" min="0" class="w-full px-4 py-2 border rounded-lg focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Min Stok</label>
+                        <input type="number" id="editProductMinStock" min="1" class="w-full px-4 py-2 border rounded-lg focus:border-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                
+                <!-- Wholesale Pricing Section -->
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+                        <span class="mr-2">🏪</span>
+                        Harga Grosir (Opsional)
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Min Qty Grosir</label>
+                            <input type="number" id="editProductWholesaleMinQty" min="2" placeholder="Contoh: 10" class="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none text-sm">
+                            <div class="text-xs text-gray-500 mt-1">Minimal beli untuk harga grosir</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Harga Grosir</label>
+                            <input type="number" id="editProductWholesalePrice" placeholder="Harga per unit" class="w-full px-3 py-2 border rounded-lg focus:border-blue-500 focus:outline-none text-sm">
+                            <div class="text-xs text-gray-500 mt-1">Harga per unit saat beli grosir</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-blue-600 mt-2">
+                        💡 Contoh: Min 10 pcs = Rp 8.000/pcs (dari harga normal Rp 10.000/pcs)
+                    </div>
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="saveEditedProduct()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold">
+                        Update
+                    </button>
+                    <button onclick="deleteProduct()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-semibold">
+                        🗑️
+                    </button>
+                    <button onclick="closeEditProductModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified Payment Modal -->
+    <div id="unifiedPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Pembayaran</h3>
+            <div class="space-y-4">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-600">Total yang harus dibayar:</div>
+                    <div class="text-2xl font-bold text-green-600" id="unifiedPaymentTotal">Rp 0</div>
+                </div>
+                
+                <!-- Customer Name (only shown when needed) -->
+                <div id="customerNameSection" class="hidden">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Pelanggan (untuk hutang)</label>
+                    <input type="text" id="unifiedCustomerName" class="w-full px-4 py-2 border-2 rounded-lg focus:border-orange-500 focus:outline-none" 
+                           placeholder="Nama pelanggan...">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah Bayar</label>
+                    <input type="number" id="unifiedPaymentAmount" class="w-full px-4 py-3 border-2 rounded-lg focus:border-green-500 focus:outline-none text-lg" 
+                           onkeyup="calculateUnifiedPayment()" onkeypress="handleUnifiedPaymentEnter(event)">
+                </div>
+                
+                <!-- Payment Status Display -->
+                <div id="paymentStatusContainer" class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-600" id="paymentStatusLabel">Status pembayaran:</div>
+                    <div class="text-xl font-bold text-gray-600" id="paymentStatusAmount">Masukkan jumlah bayar</div>
+                    <div class="text-xs mt-1" id="paymentStatusHint"></div>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="processUnifiedPayment()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-bold">
+                        💳 Proses Bayar
+                    </button>
+                    <button onclick="closeUnifiedPaymentModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partial Payment Modal -->
+    <div id="partialPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Bayar Sebagian</h3>
+            <div class="space-y-4">
+                <div class="bg-orange-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-600">Total belanja:</div>
+                    <div class="text-2xl font-bold text-orange-600" id="partialTotal">Rp 0</div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Pelanggan</label>
+                    <input type="text" id="customerName" class="w-full px-4 py-2 border-2 rounded-lg focus:border-orange-500 focus:outline-none" 
+                           placeholder="Nama pelanggan...">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah Bayar</label>
+                    <input type="number" id="partialAmount" class="w-full px-4 py-3 border-2 rounded-lg focus:border-orange-500 focus:outline-none text-lg" 
+                           onkeyup="calculatePartialDebt()" onkeypress="handlePartialPaymentEnter(event)">
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg" id="debtContainer">
+                    <div class="text-sm text-gray-600" id="debtLabel">Sisa hutang:</div>
+                    <div class="text-xl font-bold text-red-600" id="debtAmount">Rp 0</div>
+                    <div class="text-xs mt-1" id="debtStatus"></div>
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="processPartialPayment()" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-bold">
+                        💰 Simpan Hutang
+                    </button>
+                    <button onclick="closePartialPaymentModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debt Payment Modal -->
+    <div id="debtPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[60] p-4" style="display: none;">
+        <div class="flex items-center justify-center min-h-full">
+            <div class="bg-white rounded-xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-bold mb-4">Bayar Hutang</h3>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Pelanggan:</div>
+                        <div class="text-lg font-bold text-blue-600" id="debtCustomerName">-</div>
+                        <div class="text-sm text-gray-600 mt-1">Total hutang:</div>
+                        <div class="text-2xl font-bold text-red-600" id="debtTotalAmount">Rp 0</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah Bayar</label>
+                        <input type="number" id="debtPaymentAmount" class="w-full px-4 py-3 border-2 rounded-lg focus:border-blue-500 focus:outline-none text-lg" 
+                               onkeyup="calculateDebtRemaining()" onkeypress="handleDebtPaymentEnter(event)">
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg" id="debtRemainingContainer">
+                        <div class="text-sm text-gray-600" id="debtRemainingLabel">Sisa hutang setelah bayar:</div>
+                        <div class="text-xl font-bold text-green-600" id="debtRemainingAmount">Rp 0</div>
+                        <div class="text-xs mt-1" id="debtRemainingStatus"></div>
+                    </div>
+                    <div class="flex space-x-3 pt-4">
+                        <button onclick="processDebtPayment()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-bold">
+                            💰 Bayar Hutang
+                        </button>
+                        <button onclick="closeDebtPaymentModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Product Modal -->
+    <div id="serviceProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-purple-100 text-purple-600 p-2 rounded-lg mr-3">🔧</span>
+                Detail Produk Jasa
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-600">Produk Jasa:</div>
+                    <div class="text-lg font-bold text-purple-600" id="serviceProductName">-</div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Harga Jasa</label>
+                    <input type="number" id="serviceProductPrice" class="w-full px-4 py-3 border-2 rounded-lg focus:border-purple-500 focus:outline-none text-lg" 
+                           placeholder="Masukkan harga jasa..." onkeypress="handleServicePriceEnter(event)">
+                    <div class="text-xs text-gray-500 mt-1">💡 Masukkan harga sesuai dengan jenis layanan</div>
+                </div>
+
+                <!-- Harga Modal input for services -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Harga Modal (Opsional)</label>
+                    <input type="number" id="serviceProductModalPrice" class="w-full px-4 py-3 border-2 rounded-lg focus:border-purple-500 focus:outline-none text-lg" 
+                           placeholder="Masukkan harga modal...">
+                    <div class="text-xs text-gray-500 mt-1">💡 Masukkan harga modal jasa (biaya pengadaan/service) jika ingin menghitung keuntungan</div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Keterangan (Opsional)</label>
+                    <textarea id="serviceProductDescription" rows="3" class="w-full px-4 py-3 border-2 rounded-lg focus:border-purple-500 focus:outline-none" 
+                              placeholder="Contoh: Service AC 1 PK, Ganti oli motor, dll..."></textarea>
+                    <div class="text-xs text-gray-500 mt-1">📝 Keterangan akan muncul di struk</div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah</label>
+                    <input type="number" id="serviceProductQuantity" min="1" value="1" class="w-full px-4 py-3 border-2 rounded-lg focus:border-purple-500 focus:outline-none text-lg">
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="addServiceToCart()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg font-bold">
+                        🛒 Tambah ke Keranjang
+                    </button>
+                    <button onclick="closeServiceProductModal()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div id="reportsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4">📊 Laporan Penjualan</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-green-800 mb-2">📅 Hari Ini</h4>
+                    <div class="text-2xl font-bold text-green-600" id="dailyTotal">Rp 0</div>
+                    <div class="text-sm text-gray-600" id="dailyTransactions">0 transaksi</div>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-blue-800 mb-2">📊 Minggu Ini</h4>
+                    <div class="text-2xl font-bold text-blue-600" id="weeklyTotal">Rp 0</div>
+                    <div class="text-sm text-gray-600" id="weeklyTransactions">0 transaksi</div>
+                </div>
+                
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-purple-800 mb-2">📈 Bulan Ini</h4>
+                    <div class="text-2xl font-bold text-purple-600" id="monthlyTotal">Rp 0</div>
+                    <div class="text-sm text-gray-600" id="monthlyTransactions">0 transaksi</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-red-800 mb-3">💳 Daftar Hutang Pelanggan</h4>
+                    <div id="debtList" class="space-y-2">
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-yellow-800 mb-3">⚠️ Laporan Stok</h4>
+                    <div id="stockReport" class="space-y-2">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeReportsModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden z-50">
+        <div class="text-center">
+            <div class="loader mx-auto mb-4"></div>
+            <div class="text-white text-lg loading-message">Memproses...</div>
+        </div>
+    </div>
+
+    <!-- Confirmation Overlay (replaces native confirm pop‑ups) -->
+    <!--
+        To improve the user experience and avoid disruptive browser pop‑ups,
+        confirmation prompts are presented as an in‑page overlay.  When a
+        destructive action such as clearing the cart, deleting a product or
+        paying off debt requires user confirmation, this overlay becomes
+        visible with a custom message and two buttons: one to proceed and
+        another to cancel.  The overlay covers the entire viewport and
+        prevents interaction with the rest of the page until a choice is
+        made.  See script.js for the helper function that controls this
+        overlay.
+    -->
+    <div id="confirmOverlay" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <div id="confirmMessage" class="text-center mb-4 whitespace-pre-line"></div>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmNoButton" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg font-semibold">Batal</button>
+                <button id="confirmYesButton" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-semibold">Ya</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Overlay (replaces native alert pop‑ups) -->
+    <!--
+        A single‑button overlay used to display informational messages that were previously
+        shown using the browser's alert() function.  This overlay prevents the
+        disruptive browser modal while still drawing the user's attention.
+        See script.js for the helper function that controls this overlay.
+    -->
+    <div id="alertOverlay" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <div id="alertMessage" class="text-center mb-4 whitespace-pre-line"></div>
+            <div class="flex justify-center">
+                <button id="alertOkButton" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Overlay -->
+    <!-- The login overlay is displayed on top of the application before a user has authenticated.  It uses a
+         fixed position to cover the entire viewport and includes a simple form to capture a username and
+         password.  Successful authentication will hide this overlay and allow access to the rest of the app.
+         Styling uses Tailwind CSS classes to ensure consistency with the rest of the design and supports
+         dark mode using the existing classes. -->
+    <div id="loginOverlay" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 hidden">
+        <!-- Wrap the login card in a form so pressing Enter or clicking the login button submits the form.
+             The form has an ID so that JavaScript can attach a single submit handler. We avoid calling
+             loginUser() inline to prevent duplicate invocations from both click and submit events. -->
+        <form id="loginForm">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-80">
+            <h2 class="text-xl font-bold mb-4 text-center text-gray-800 dark:text-gray-100">Masuk</h2>
+            <div class="mb-3">
+                <label for="loginUsername" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Pengguna</label>
+                <input type="text" id="loginUsername" class="w-full p-2 border rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Masukkan nama pengguna" />
+            </div>
+            <div class="mb-4">
+                <label for="loginPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kata Sandi</label>
+                <input type="password" id="loginPassword" class="w-full p-2 border rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Masukkan kata sandi" />
+            </div>
+            <div id="loginError" class="mb-3 text-sm text-red-600 dark:text-red-400 hidden">Nama pengguna atau kata sandi salah.</div>
+            <!-- Loading indicator: displayed while the app verifies the user's credentials -->
+            <div id="loginLoading" class="mb-3 text-sm text-blue-600 hidden flex items-center space-x-2">
+                <!-- Simple spinner using Tailwind's animate-spin class. The SVG rotates continuously to indicate activity. -->
+                <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span>Sedang memeriksa…</span>
+            </div>
+            <button id="loginButton" type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors active:bg-blue-700">Login</button>
+        </div>
+        </form>
+    </div>
+
+    <!-- Pending Changes Modal -->
+    <div id="pendingChangesModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+            <h3 class="text-lg font-semibold mb-4">Perubahan Tertunda</h3>
+            <div id="pendingChangesList" class="max-h-60 overflow-y-auto space-y-2 text-gray-700 text-sm border-t border-b py-2"></div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closePendingChangesModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync History Modal: lists past synchronisation events in reverse chronological order -->
+    <div id="syncHistoryModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+            <h3 class="text-lg font-semibold mb-4">Riwayat Sinkronisasi</h3>
+            <div id="syncHistoryList" class="max-h-60 overflow-y-auto space-y-2 text-gray-700 text-sm border-t border-b py-2"></div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeSyncHistoryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load external JavaScript libraries -->
+    <!-- Barcode scanner library for camera scanning on mobile devices.
+         Using a CDN-hosted version of html5-qrcode. This provides support for
+         scanning 1D and 2D barcodes via the device camera. If offline usage is
+         required, the library can be bundled locally instead. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- Include QuaggaJS for more robust 1D barcode scanning.
+         This library complements html5-qrcode by providing better support for
+         linear barcodes such as EAN and Code128.  When available, the app
+         will attempt to use Quagga first and fall back to html5-qrcode if
+         initialization fails or if the library is unavailable. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+    <!-- Load application script after external libraries to ensure symbols are defined -->
+    <script src="script.js"></script>
+</body>
+</html>

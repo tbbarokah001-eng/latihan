@@ -1,0 +1,393 @@
+body {
+            box-sizing: border-box;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            body {
+                font-size: 14px;
+            }
+            
+            h1 {
+                font-size: 1.25rem !important;
+            }
+            
+            .mobile-compact {
+                padding: 0.5rem !important;
+            }
+            
+            button, input, select {
+                min-height: 40px;
+                font-size: 14px;
+            }
+            
+            input[type="text"], input[type="number"] {
+                font-size: 16px;
+            }
+            
+            #floatingCart {
+                width: calc(100vw - 1rem) !important;
+                max-width: 320px !important;
+                bottom: 0.5rem !important;
+                right: 0.5rem !important;
+            }
+        }
+        
+        .scanner-line {
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+            0%, 100% { transform: translateY(-100%); }
+            50% { transform: translateY(100%); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.5s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .pulse-success {
+            animation: pulseSuccess 0.6s ease-out;
+        }
+        @keyframes pulseSuccess {
+            0% { transform: scale(1); background-color: rgb(34 197 94); }
+            50% { transform: scale(1.05); background-color: rgb(22 163 74); }
+            100% { transform: scale(1); background-color: rgb(34 197 94); }
+        }
+        
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .active-press {
+            transition: transform 0.1s ease;
+        }
+        .active-press:active {
+            transform: scale(0.95);
+        }
+
+        .stock-critical {
+            background: linear-gradient(45deg, #fee2e2, #fecaca);
+            border-color: #f87171;
+        }
+        
+        .stock-low {
+            background: linear-gradient(45deg, #fef3c7, #fde68a);
+            border-color: #f59e0b;
+        }
+        
+        .stock-ok {
+            background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+            border-color: #22c55e;
+        }
+
+        .printer-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .printer-connected {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .printer-disconnected {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+
+/*
+ * Accessibility fix: ensure cart item text remains visible on hover.
+ *
+ * When a user hovers over the list of products in the cart (both in the
+ * main scanner table and the floating cart), the background highlight can
+ * sometimes match the foreground color, causing the text to appear to
+ * disappear. To improve readability, we force the hovered row's text
+ * color to black and add a thin white stroke. The stroke provides an
+ * outline around each letter, making the dark text stand out against
+ * colored backgrounds.
+ */
+#scannerProductTable tr:hover,
+#cartItems > div:hover {
+    /* When hovering over product rows in the scanner cart and floating cart,
+       render the text with a black fill and a thin white outline to maintain
+       legibility on highlighted backgrounds. */
+    color: #000000 !important;
+    -webkit-text-stroke: 0.5px #ffffff;
+    /* Tailwind uses currentColor for SVG icons; this rule ensures any
+       icon text within the hovered row also inherits the black color. */
+}
+
+/*
+ * Product list text visibility.
+ *
+ * Adjust the default text color for product names and totals in the
+ * scanner table and floating cart to a very light grey. Dark themes
+ * often suffer from insufficient contrast when using dark text on a dark
+ * background. To improve readability, we switch to a near‑white color and
+ * remove the stroke effect. The !important flag ensures our color
+ * overrides Tailwind's default `text-gray-*` classes.
+ */
+#scannerProductTable,
+#cartItems {
+    /* Use a light color for text (similar to Tailwind's `gray-100`) to achieve
+       a contrast ratio above 4.5:1 on dark backgrounds. */
+    color: #F9FAFB !important;
+    /* Remove text stroke which previously attempted to outline dark text.
+       This avoids blurred edges and halos that reduce legibility. */
+    -webkit-text-stroke: 0 !important;
+}
+
+/* Ensure nested elements inherit the light text color consistently. */
+#scannerProductTable *,
+#cartItems * {
+    color: inherit !important;
+    -webkit-text-stroke: inherit !important;
+}
+
+/*
+ * Quantity input visibility.
+ *
+ * The quantity inputs inside the scanner cart table use Tailwind's default styling,
+ * which results in dark text on a dark background in dark mode. To ensure the
+ * numbers remain clearly visible, we force a white background and dark text.
+ */
+#scannerProductTable input[type="number"] {
+    /* Maintain a white background and dark text for maximum contrast in dark themes */
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    /* Increase the font size and weight so the quantity is easier to read.  
+       WCAG guidelines relax contrast requirements for larger, bold text (14pt/18pt)【817870873684698†L31-L38】, so
+       bumping the font makes the number stand out without sacrificing accessibility. */
+    font-size: 1.25rem !important; /* ~20px */
+    font-weight: 700 !important;
+    /* Apply a subtle glow around the input to create a halo effect.  
+       WCAG techniques recommend using a halo or outline to ensure text stands out against complex backgrounds【817870873684698†L52-L76】.  
+       Here we use a greenish glow matching the theme colors to draw attention to the quantity field. */
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.8), 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+/*
+ * Match the scanner tab's cart list style to the Analysis tab table.
+ * Increase horizontal padding and apply a bold font to all cells within
+ * the scanner product table.  The padding (0.75rem vertical and 1rem horizontal)
+ * aligns with the 'py-3 px-4' classes used in the analysis table header.
+ * Bold text improves readability and emphasises the items, mirroring the
+ * analytical view while retaining larger font sizes set on specific elements.
+ */
+/*
+ * Improve the scanner cart row appearance.
+ * Increase horizontal padding and apply a bold font weight to all cells in the
+ * scanner product table.  The !important flag ensures our style overrides
+ * Tailwind's default font weights applied via utility classes.
+ */
+#scannerProductTable td {
+    padding: 0.75rem 1rem;
+    font-weight: 700 !important;
+}
+
+/*
+ * Discount controls visibility fix.
+ *
+ * The discount selector for choosing between percentage (%) and nominal (Rp)
+ * values can become unreadable when themes apply dark backgrounds. These
+ * rules ensure that the select dropdown and its options, as well as the
+ * numeric inputs used for entering discount values, always render with a
+ * white background and dark text for maximum contrast. The scope is
+ * limited to the floating cart (#floatingCart) and per‑item sections within
+ * #cartItems so other form elements remain unaffected.
+ */
+#floatingCart select,
+#floatingCart option,
+#cartItems select,
+#cartItems option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+#floatingCart input[type="number"],
+#cartItems input[type="number"] {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/*
+ * Scanner discount selector visibility.
+ * The discount type selector (Rp / %) in the scanner cart table inherits the light text color from
+ * the table, which makes it unreadable against the dark background.  Override its styles to use
+ * a white background and dark text so the selected option ('Rp' or '%') is clearly visible.  Apply
+ * the same styles to the <option> elements to ensure consistent coloring when the dropdown is open.
+ */
+#scannerProductTable select,
+#scannerProductTable option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/*
+ * Global input text color adjustment.
+ *
+ * Some themes apply light-colored text in form fields, which can be
+ * difficult to read against light backgrounds. To ensure all typed text
+ * remains clearly visible, force the text color in common form fields
+ * (text inputs, numeric inputs and textareas) to black. The
+ * !important flag ensures this rule takes precedence over theme styles.
+ */
+input[type="text"],
+input[type="number"],
+textarea {
+    color: #000000 !important;
+}
+
+/*
+ * Adjust navigation spacing. The navigation tabs (Scanner, Produk, Riwayat,
+ * Analisa) were positioned too close to the green header line. To provide
+ * clear separation between the header and the tab bar on initial load,
+ * increase the top margin of the nav wrapper. This pushes the tab bar
+ * downward so it sits comfortably below the header's green divider.
+ */
+#navWrapper {
+    margin-top: 1rem;
+}
+
+/*
+ * Center the navigation sidebar vertically on the page.
+ *
+ * In themes where the navigation is converted into a vertical sidebar
+ * (positioned fixed on the left with full height), users requested that
+ * the tab buttons be moved to the middle of the screen rather than
+ * sticking to the top. To accomplish this, we override the top
+ * positioning and apply a vertical translation so that the wrapper’s
+ * vertical center aligns with the midpoint of the viewport. Using
+ * !important ensures our rule takes precedence over any theme-specific
+ * styles. Because this rule only applies when the nav is fixed, it
+ * won’t affect horizontal layouts where the nav remains in its default
+ * static flow.
+ */
+/* When the navigation becomes a fixed sidebar (such as in the Zen Minimal
+   themes), push it down from the very top of the viewport so that the
+   tabs appear roughly in the middle rather than hugging the top edge. The
+   `top` property will only apply when `position: fixed` is in effect; in
+   regular horizontal layouts the nav remains static and this rule has no
+   impact. */
+#navWrapper {
+    top: 30% !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Transaction History Accessibility Adjustments
+ *
+ * In the Riwayat (history) tab, Tailwind's default hover backgrounds (e.g.
+ * `hover:bg-gray-50` and `hover:bg-blue-50`) can lighten table rows on dark
+ * themes. Combined with inherited light text colors, this can render cell
+ * contents nearly invisible when a row is selected or hovered. To remedy
+ * this, we explicitly set dark text with a white outline on all rows and
+ * reinforce the styling on hover. Additionally, the filter dropdown is
+ * forced to use a white background with dark text to maintain contrast
+ * regardless of theme.
+ */
+
+/* Reset transaction history text styling to allow default theme colors.
+   Removing the previous bold, dark grey rules lets the table adopt the
+   standard styling used in the Analisa tab, creating a consistent look. */
+
+/*
+ * Override the default Tailwind hover highlight color for rows in the
+ * transaction history table.  A medium dark grey is used instead of
+ * light grey so that the highlight remains subtle within a dark-themed
+ * interface while still providing a clear indication of the hovered row.
+ */
+#transactionHistory tr:hover {
+    background-color: #374151 !important; /* Tailwind gray‑700 */
+}
+
+
+/* Improve visibility of the transaction history filter dropdown. Without this
+   rule the select element may inherit a dark background and light text from
+   theme styles, making the options hard to read. Setting a white
+   background and dark text provides consistent contrast. */
+#historyFilter,
+#historyFilter option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/*
+ * Suggestion list highlight readability.
+ *
+ * When navigating product suggestions with arrow keys or hovering over items,
+ * the row receives a dark blue background (via bg-blue-600 or bg-blue-700) and
+ * a white foreground class.  However, nested elements within the row may
+ * retain their original colour classes (e.g. text-green-600 or text-gray-400),
+ * resulting in poor contrast on the dark background.  These rules force all
+ * descendants of a highlighted or hovered suggestion row to inherit the
+ * white foreground colour, preserving legibility in dark themes.
+ */
+#productSuggestions .bg-blue-700 *,
+#productSuggestions .bg-blue-600 * {
+    color: #ffffff !important;
+}
+
+/*
+ * Add a light yellow background to all cells in the transaction history
+ * table.  This subtle yellow provides a gentle contrast behind the blue,
+ * bold text, improving legibility without overpowering the overall dark
+ * theme.  The !important flag ensures the background color persists even
+ * when Tailwind hover utilities are applied to rows.
+ */
+/*
+ * Apply a subtle pastel background to each cell in the transaction history
+ * table.  This maintains the traditional table layout (row and column
+ * structure) while providing a gentle highlight behind the dark text.  A
+ * soft sky‑blue tone is chosen to differentiate the row from the dark
+ * application background without being harsh or distracting.
+ */
+
+/* Remove custom background color for transaction history cells.  With no
+   explicit background on the cells, the table uses the same dark scheme
+   as the Analisa tab, and rows are delineated by borders and hover states. */
+

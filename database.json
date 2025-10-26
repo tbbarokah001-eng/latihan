@@ -1,0 +1,51 @@
+{
+    "products": [
+        {
+            "id": 1,
+            "name": "Nasi Putih",
+            "price": 5000,
+            "modalPrice": 3000,
+            "barcode": "001",
+            "stock": 50,
+            "minStock": 10
+        },
+        {
+            "id": 2,
+            "name": "Ayam Goreng",
+            "price": 15000,
+            "modalPrice": 10000,
+            "barcode": "002",
+            "stock": 25,
+            "minStock": 5
+        },
+        {
+            "id": 3,
+            "name": "Teh Manis",
+            "price": 3000,
+            "modalPrice": 1500,
+            "barcode": "003",
+            "stock": 100,
+            "minStock": 20
+        },
+        {
+            "id": 4,
+            "name": "Kerupuk",
+            "price": 2000,
+            "modalPrice": 1200,
+            "barcode": "004",
+            "stock": 30,
+            "minStock": 10
+        },
+        {
+            "id": 5,
+            "name": "Sambal",
+            "price": 1000,
+            "modalPrice": 500,
+            "barcode": "005",
+            "stock": 15,
+            "minStock": 5
+        }
+    ],
+    "salesData": [],
+    "debtData": []
+}
