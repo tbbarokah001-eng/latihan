@@ -88,14 +88,11 @@
                 #navContainer button {
                     flex: 1 1 0 !important;
                     width: auto !important;
-                    /* Use a smaller minimum height and font size for the navigation
-                     * buttons to reduce the bar’s vertical footprint. This reverts
-                     * their size closer to the original design while still being
-                     * easily tappable. */
-                    min-height: 40px !important;
+                    /* Increase minimum height to accommodate both icon and label stacked vertically on mobile */
+                    min-height: 56px !important;
                     font-size: 14px !important;
-                    padding-top: 0.5rem !important;
-                    padding-bottom: 0.5rem !important;
+                    padding-top: 0.75rem !important;
+                    padding-bottom: 0.75rem !important;
                 }
                 #contentContainer {
                     margin-left: 0 !important;
@@ -395,22 +392,29 @@
                 <div id="navContainer" class="bg-white rounded-lg sm:rounded-xl shadow-lg mb-3 sm:mb-6">
                     <div class="flex border-b border-gray-200 overflow-x-auto">
                     <button onclick="switchTab('scanner')" id="scannerTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors bg-green-500 text-white rounded-tl-lg sm:rounded-tl-xl whitespace-nowrap text-xs sm:text-base">
-                         <!-- Add icon for mobile and text for desktop -->
-                         <span class="sm:hidden">📷</span>
-                         <span class="hidden sm:inline">Scanner</span>
+                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
+                            <span class="text-xl">📷</span>
+                            <span class="text-[10px] sm:text-base sm:ml-2">Scanner</span>
+                        </div>
                     </button>
                     <button onclick="switchTab('products')" id="productsTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 whitespace-nowrap text-xs sm:text-base">
-                         <span class="sm:hidden">📦</span>
-                         <span class="hidden sm:inline">Produk</span>
+                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
+                            <span class="text-xl">📦</span>
+                            <span class="text-[10px] sm:text-base sm:ml-2">Produk</span>
+                        </div>
                     </button>
                     <!-- Navigation tab for transaction history (Riwayat). Visible to users. -->
                     <button onclick="switchTab('history')" id="historyTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 whitespace-nowrap text-xs sm:text-base">
-                         <span class="sm:hidden">🕒</span>
-                         <span class="hidden sm:inline">Riwayat</span>
+                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
+                            <span class="text-xl">🕒</span>
+                            <span class="text-[10px] sm:text-base sm:ml-2">Riwayat</span>
+                        </div>
                     </button>
                     <button onclick="switchTab('analysis')" id="analysisTab" class="flex-1 py-2 px-2 sm:py-4 sm:px-6 text-center font-semibold transition-colors text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-tr-lg sm:rounded-tr-xl whitespace-nowrap text-xs sm:text-base">
-                         <span class="sm:hidden">📈</span>
-                         <span class="hidden sm:inline">Analisa</span>
+                        <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center">
+                            <span class="text-xl">📈</span>
+                            <span class="text-[10px] sm:text-base sm:ml-2">Analisa</span>
+                        </div>
                     </button>
                     </div>
                 </div>
