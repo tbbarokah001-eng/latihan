@@ -4365,8 +4365,10 @@ function removeDuplicateProducts() {
                         sendDeltaToGoogleSheets('update', 'products', productToRow(p)).catch(err => console.error('Auto sync failed:', err));
                     }
                 });
-                // Process pending deltas immediately to ensure stock updates are flushed to Google Sheets
-                processPendingDeltas();
+                // Process pending deltas immediately to ensure stock updates are flushed to Google Sheets.
+                // Pass `true` to run in silent mode so the loading overlay does not block the UI. This prevents
+                // the "Menyinkronkan perubahan offline" overlay from interrupting rapid checkout workflows.
+                processPendingDeltas(true);
             } catch (err) {
                 console.error('Auto sync failed:', err);
             }
@@ -4480,8 +4482,9 @@ function removeDuplicateProducts() {
                 if (debtRecordImmediate) {
                     sendDeltaToGoogleSheets('update', 'debts', debtToRow(debtRecordImmediate)).catch(err => console.error('Auto sync failed:', err));
                 }
-                // Flush all queued deltas immediately so stock and debt updates are written to Google Sheets
-                processPendingDeltas();
+                // Flush all queued deltas immediately so stock and debt updates are written to Google Sheets.
+                // Run in silent mode to avoid showing the loading overlay during the transaction.
+                processPendingDeltas(true);
             } catch (err) {
                 console.error('Auto sync failed:', err);
             }
@@ -4690,8 +4693,9 @@ function removeDuplicateProducts() {
                 if (debtRecordImmediate) {
                     sendDeltaToGoogleSheets('update', 'debts', debtToRow(debtRecordImmediate)).catch(err => console.error('Auto sync failed:', err));
                 }
-                // Immediately process any queued deltas so they are sent without waiting for a full sync
-                processPendingDeltas();
+                // Immediately process any queued deltas so they are sent without waiting for a full sync.
+                // Run silently to prevent the full-screen overlay from blocking the user interface during checkout.
+                processPendingDeltas(true);
             } catch (err) {
                 console.error('Auto sync failed:', err);
             }
@@ -5470,8 +5474,9 @@ function removeDuplicateProducts() {
                         sendDeltaToGoogleSheets('add', 'sales', saleToRow(paymentRecord)).catch(err => {
                             console.error('Auto sync failed:', err);
                         });
-                        // Immediately process queued deltas for the removed debt and new payment record
-                        processPendingDeltas();
+                        // Immediately process queued deltas for the removed debt and new payment record.
+                        // Use silent mode to avoid disrupting the flow with a loading overlay.
+                        processPendingDeltas(true);
                     } catch (err) {
                         console.error('Auto sync failed:', err);
                     }
@@ -5629,8 +5634,9 @@ function removeDuplicateProducts() {
                             sendDeltaToGoogleSheets('update', 'debts', debtToRow(debtRecordToSync)).catch(err => console.error('Auto sync failed:', err));
                         }
                     }
-                    // Immediately process pending deltas so updates are flushed to Google Sheets
-                    processPendingDeltas();
+                    // Immediately process pending deltas so updates are flushed to Google Sheets.
+                    // Use silent mode to avoid showing the blocking loading overlay.
+                    processPendingDeltas(true);
                 } catch (err) {
                     console.error('Auto sync failed:', err);
                 }
